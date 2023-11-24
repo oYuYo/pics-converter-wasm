@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style/style.css" rel="stylesheet">
+        <script src="https://unpkg.com/budoux/bundle/budoux-ja.min.js"></script>
+        <script src="wasm_exec.js"></script>
+        <script>
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+                module = result.module;
+                inst = result.instance;
+                go.run(inst);
+            });
+        </script>
+        <title>Picture Converter</title>
+    </head>
+    <body>
+        <h1 class="title">Picture Converter</h1>
+        <hr />
+        <p><budoux-ja>PNG画像をサイズ縮小し, JPG画像へ変換します. 画像の縦横比は維持します. <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません</budoux-ja></p>
+        <div class="select-action">
+            <div>
+                <input type="number" id="size-reduction" name="size" min="10"/>
+                <label for="size-reduction">pxへ縮小する(未入力であればJPGへの変換のみです)</label>
+            </div>
+        </div>
+
+        <div>
+            <label for="source-file">変換したいファイルを選択してください</label><br />
+            <input type="file" id="source-file" name="source-file" multiple accept="image/png"/>
+        </div>
+        <div style="text-align: center;"><button id="conv">変換</button></div>
+        <div id="err-msg"><span id="err-msg-spn"></span></div>
+        <a href="#" id="output-file" style="display: none;"download>download</a>
+    </body>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function(){
+            const button = document.getElementById("conv");
+            button.addEventListener("click", convert_click);
+        });
+/*
+        function convert(){
+            const reader = new FileReader();
+            reader.addEventListener(
+                "load",
+                () => {
+                    //SelectFunc(radio.value, file.name, reader.result);
+                },
+                false,
+            );
+
+            reader.readAsDataURL(file);
+
+        }
+*/
+        function convert_click(e) {
+            document.getElementById("err-msg-spn").innerText = "";
+            const specifiedSize = document.getElementById("size-reduction").value;
+            const num = specifiedSize === "" ? 0 : Number.parseInt(specifiedSize, 10);
+            if (specifiedSize !== "" && (Number.isNaN(num) || num < 10)) {
+                document.getElementById("err-msg-spn").innerText = "指定された縮小サイズが不正です";
+                return;
+            }
+            const files = document.getElementById("source-file").files;
+            if(files.length === 0){
+                document.getElementById("err-msg-spn").innerText = "ファイルを選択してください";
+                return;
+            }
+
+            for(file of files){
+                if(file.type !== "image/png"){
+                    document.getElementById("err-msg-spn").innerText = "ファイル形式が不正です";
+                    return;
+                }
+            }
+
+            if (files) {
+                fetchAllReadAsDataURL(files).then((data) => {
+                    Convert(String(num), String(files.length), ...data);
+               });
+            }
+        }
+
+        async function fetchAllReadAsDataURL(files) {
+            const fileArray = Array.from(files);
+            const promises = fileArray.map((file) => {
+                return fetchReadAsDataURL(file);
+            });
+
+            const res = await Promise.all(promises);
+            return res.map((data) => {
+                return data;
+            });
+        }
+
+        function fetchReadAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.addEventListener(
+                    "load",
+                    () => {
+                        resolve({
+                            base64: reader.result.split('base64,')[1]
+                        });
+                    },
+                    false,
+                );
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</html>

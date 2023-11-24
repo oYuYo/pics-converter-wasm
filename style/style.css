@@ -1,0 +1,38 @@
+body{
+    background-color: rgb(220, 240, 245);
+    font-size:18px;
+}
+.title{
+    text-align: center;
+    margin:30px  0px 10px 0px;
+}
+hr{
+    border: solid 1px rgb(27, 137, 255);
+}
+.select-action{
+    margin:20px 0px 20px 30px;
+    line-height: 2;
+}
+input[type="file"]{
+    margin:20px 0px 30px 30px;
+}
+button#conv{
+    width: 150px;
+    height: 40px;
+    background-color:rgb(27, 137, 255);
+    color: #fff;
+    transition: .5s;
+    cursor: pointer;
+    border-radius: 80px;
+    border:none;
+    font-size: 18px;
+}
+button#conv:hover{
+    opacity: .5;
+}
+#err-msg{
+    text-align: center;
+    color: green;
+    text-decoration:green wavy underline;
+    margin-top:10px;
+}
