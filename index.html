@@ -22,7 +22,13 @@
         <p><budoux-ja>PNG画像をサイズ縮小し, JPG画像へ変換します. 画像の縦横比は維持します. <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません</budoux-ja></p>
         <div class="select-action">
             <div>
-                <input type="number" id="size-reduction" name="size" min="10"/>
+                <label for="vertical-size">
+                    <input type="radio" id="vertical-size" name="select" value="0" checked/>縦
+                </label>
+                <label for="horizontal-size">
+                    <input type="radio" id="horizontal-size" name="select" value="1"/>横
+                </label>を
+                <input type="number" id="size-reduction" name="size" min="50" max="2000" style="width: 100px;"/>
                 <label for="size-reduction">pxへ縮小する(未入力であればJPGへの変換のみです)</label>
             </div>
         </div>
@@ -43,9 +49,10 @@
         
         function convert_click(e) {
             document.getElementById("err-msg-spn").innerText = "";
+            const radio = document.querySelector('input[type="radio"]:checked');
             const specifiedSize = document.getElementById("size-reduction").value;
-            const num = specifiedSize === "" ? 0 : Number.parseInt(specifiedSize, 10);
-            if (specifiedSize !== "" && (Number.isNaN(num) || num < 10)) {
+            const num = specifiedSize === "" ? -1 : Number.parseInt(specifiedSize, 10);
+            if (specifiedSize !== "" && (Number.isNaN(num) || num < 50 || 2000 < num)) {
                 document.getElementById("err-msg-spn").innerText = "指定された縮小サイズが不正です";
                 return;
             }
@@ -64,7 +71,7 @@
 
             if (files) {
                 fetchAllReadAsDataURL(files).then((data) => {
-                    Convert(String(num), String(files.length), ...data);
+                    Convert(radio.value, String(num), String(files.length), ...data);
                });
             }
         }

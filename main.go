@@ -16,23 +16,37 @@ import (
 	"syscall/js"
 )
 
+type ResizeType int
+
+const (
+	Vertical ResizeType = iota
+	Horizontal
+)
+
 type JPGImg struct {
 	FileName string
 	Img      []byte
 }
 
-// args[0]: specifiedfileSize, args[1]: fileCount, args[2]: files
+// args[0]: resizeType, args[1]: specifiedfileSize, args[2]: fileCount, args[3...]: files
 func Convert(this js.Value, args []js.Value) interface{} {
-
+	offset := 3
 	var tmp string = args[0].String()
-	_, err := strconv.Atoi(tmp)
+	resizeType, err := strconv.Atoi(tmp)
 	if err != nil {
 		fmt.Println(err)
-		printAlert("指定された縮小サイズが不正です")
+		printAlert("リサイズ対象の判定に失敗しました")
 		return nil
 	}
 
 	tmp = args[1].String()
+	specifiedfileSize, err := strconv.Atoi(tmp)
+	if err != nil {
+		printAlert("添付されたファイルカウントの取得に失敗しました")
+		return nil
+	}
+
+	tmp = args[2].String()
 	fileCount, err := strconv.Atoi(tmp)
 	if err != nil {
 		printAlert("添付されたファイルカウントの取得に失敗しました")
@@ -41,7 +55,7 @@ func Convert(this js.Value, args []js.Value) interface{} {
 
 	var JPGImgs []JPGImg
 
-	for i := 2; i < 2+fileCount; i++ {
+	for i := offset; i < offset+fileCount; i++ {
 		base64Decode, err := base64.StdEncoding.DecodeString(args[i].Get("base64").String())
 		if err != nil {
 			printAlert("添付されたPNGデータの取得に失敗しました")
@@ -54,10 +68,15 @@ func Convert(this js.Value, args []js.Value) interface{} {
 			return nil
 		}
 
+		if specifiedfileSize >= 50 {
+			img = resizeImage(ResizeType(resizeType), specifiedfileSize, img)
+		}
+
 		imgWithWhite := fillTransparentWhite(img)
 
 		var b bytes.Buffer
-		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, nil); err != nil {
+		//品質を落としたいわけではないので, qualityは100を指定
+		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, &jpeg.Options{Quality: 100}); err != nil {
 			printAlert("JPGデータへのエンコードに失敗しました")
 			return nil
 		}
@@ -67,13 +86,13 @@ func Convert(this js.Value, args []js.Value) interface{} {
 		JPGImgs = append(JPGImgs, JPGImg{FileName: strings.TrimSuffix(fileName, ext), Img: b.Bytes()})
 	}
 
-	b, err := createZip(&JPGImgs)
+	zipData, err := createZip(&JPGImgs)
 	if err != nil {
 		printAlert("zipファイル作成中にエラーが発生しました")
 		return nil
 	}
 
-	attachData(b, "archive", ".zip")
+	attachData(zipData, "archive", ".zip")
 	return nil
 }
 
@@ -97,9 +116,34 @@ func fillTransparentWhite(img image.Image) image.Image {
 	return newImg
 }
 
-func SizeReduction() error {
+func resizeImage(resizeType ResizeType, specifiedfileSize int, img image.Image) image.Image {
+	origBounds := img.Bounds()
+	origWidth := origBounds.Dx()
+	origHeight := origBounds.Dy()
+	var ratio float64
 
-	return nil
+	if resizeType == Horizontal {
+		ratio = float64(specifiedfileSize) / float64(origWidth)
+	} else {
+		ratio = float64(specifiedfileSize) / float64(origHeight)
+	}
+	//fmt.Printf("orig width: %d, height: %d, rate: %f\n", origWidth, origHeight, ratio)
+
+	newWidth := int(float64(origWidth) * ratio)
+	newHeight := int(float64(origHeight) * ratio)
+	//fmt.Printf("new width: %d, height: %d, rate: %f\n", newWidth, newHeight, ratio)
+
+	resizeImg := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+
+	for y := 0; y < newHeight; y++ {
+		for x := 0; x < newWidth; x++ {
+			origX := int(float64(x) / ratio)
+			origY := int(float64(y) / ratio)
+			resizeImg.Set(x, y, img.At(origX, origY))
+		}
+	}
+
+	return resizeImg
 }
 
 func createZip(data *[]JPGImg) ([]byte, error) {
