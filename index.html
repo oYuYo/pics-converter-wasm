@@ -40,21 +40,7 @@
             const button = document.getElementById("conv");
             button.addEventListener("click", convert_click);
         });
-/*
-        function convert(){
-            const reader = new FileReader();
-            reader.addEventListener(
-                "load",
-                () => {
-                    //SelectFunc(radio.value, file.name, reader.result);
-                },
-                false,
-            );
-
-            reader.readAsDataURL(file);
-
-        }
-*/
+        
         function convert_click(e) {
             document.getElementById("err-msg-spn").innerText = "";
             const specifiedSize = document.getElementById("size-reduction").value;
@@ -102,6 +88,7 @@
                     "load",
                     () => {
                         resolve({
+                            fileName: file.name,
                             base64: reader.result.split('base64,')[1]
                         });
                     },
