@@ -36,3 +36,10 @@ button#conv:hover{
     text-decoration:green wavy underline;
     margin-top:10px;
 }
+.contact {
+    text-align: center;
+}
+div.contact > a > img {
+    width: 50px;
+    height: 50px;
+}
