@@ -75,8 +75,8 @@ func Convert(this js.Value, args []js.Value) interface{} {
 		imgWithWhite := fillTransparentWhite(img)
 
 		var b bytes.Buffer
-		//品質を落としたいわけではないので, qualityは100を指定
-		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, &jpeg.Options{Quality: 100}); err != nil {
+		//品質を落としたいわけではないがファイルサイズを小さくしたいので, qualityは90を指定
+		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, &jpeg.Options{Quality: 90}); err != nil {
 			printAlert("JPGデータへのエンコードに失敗しました")
 			return nil
 		}
