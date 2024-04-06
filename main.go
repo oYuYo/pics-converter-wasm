@@ -28,9 +28,9 @@ type JPGImg struct {
 	Img      []byte
 }
 
-// args[0]: resizeType, args[1]: specifiedfileSize, args[2]: fileCount, args[3...]: files
+// args[0]: resizeType, args[1]: specifiedfileSize, args[2]:quality, args[3]: fileCount, args[4...]: files
 func Convert(this js.Value, args []js.Value) interface{} {
-	offset := 3
+	offset := 4
 	var tmp string = args[0].String()
 	resizeType, err := strconv.Atoi(tmp)
 	if err != nil {
@@ -47,6 +47,13 @@ func Convert(this js.Value, args []js.Value) interface{} {
 	}
 
 	tmp = args[2].String()
+	quality, err := strconv.Atoi(tmp)
+	if err != nil {
+		printAlert("指定された品質の取得に失敗しました")
+		return nil
+	}
+
+	tmp = args[3].String()
 	fileCount, err := strconv.Atoi(tmp)
 	if err != nil {
 		printAlert("添付されたファイルカウントの取得に失敗しました")
@@ -75,8 +82,7 @@ func Convert(this js.Value, args []js.Value) interface{} {
 		imgWithWhite := fillTransparentWhite(img)
 
 		var b bytes.Buffer
-		//品質を落としたいわけではないがファイルサイズを小さくしたいので, qualityは90を指定
-		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, &jpeg.Options{Quality: 90}); err != nil {
+		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, &jpeg.Options{Quality: quality}); err != nil {
 			printAlert("JPGデータへのエンコードに失敗しました")
 			return nil
 		}

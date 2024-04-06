@@ -37,7 +37,11 @@
                 <label for="size-reduction">pxへ縮小する(未入力であればJPGへの変換のみです)</label>
             </div>
         </div>
-
+        <div class="select-action">
+            <span>品質を指定してください</span>
+            <input type="range" id="quality" name="quality" min="0" max="100" step="1" value="85"/>
+            <label for="quality"><output id="percent">85</output>%</label><br />
+        </div>
         <div>
             <label for="source-file">変換したいファイルを選択してください</label><br />
             <input type="file" id="source-file" name="source-file" multiple accept="image/png"/>
@@ -52,6 +56,12 @@
             button.addEventListener("click", convert_click);
         });
         
+        document.addEventListener('DOMContentLoaded', function(){
+            quality.addEventListener("input", (event) => {
+                percent.textContent = event.target.value;
+            });
+        });
+
         function convert_click(e) {
             document.getElementById("err-msg-spn").innerText = "";
             const radio = document.querySelector('input[type="radio"]:checked');
@@ -74,9 +84,16 @@
                 }
             }
 
+            const q = Number.parseInt(quality.value, 10);
+            console.log(q)
+            if(quality.value === '' && (Number.isNaN(q) || q < 0 || 100 < q)) {
+                document.getElementById("err-msg-spn").innerText = "指定された品質が不正です";
+                return;
+            }
+
             if (files) {
                 fetchAllReadAsDataURL(files).then((data) => {
-                    Convert(radio.value, String(num), String(files.length), ...data);
+                    Convert(radio.value, String(num), String(q), String(files.length), ...data);
                });
             }
         }
