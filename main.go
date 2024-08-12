@@ -75,20 +75,24 @@ func Convert(this js.Value, args []js.Value) interface{} {
 			printAlert("画像フォーマットの取得に失敗しました")
 			return nil
 		}
-
+		printAlert(format)
 		var img image.Image
-		if format == "png" {
+		switch format {
+		case "png":
 			img, err = png.Decode(strings.NewReader(string(base64Decode)))
 			if err != nil {
 				printAlert("PNGデータのデコードに失敗しました")
 				return nil
 			}
-		} else {
+		case "jpeg":
 			img, _, err = image.Decode(strings.NewReader(string(base64Decode)))
 			if err != nil {
 				printAlert("添付された画像データのデコードに失敗しました")
 				return nil
 			}
+		default:
+			printAlert("添付された画像がPNGまたはJPG形式ではありません")
+			return nil
 		}
 
 		if specifiedfileSize >= 50 {
