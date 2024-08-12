@@ -65,14 +65,30 @@ func Convert(this js.Value, args []js.Value) interface{} {
 	for i := offset; i < offset+fileCount; i++ {
 		base64Decode, err := base64.StdEncoding.DecodeString(args[i].Get("base64").String())
 		if err != nil {
-			printAlert("添付されたPNGデータの取得に失敗しました")
+			printAlert("添付された画像データの取得に失敗しました")
 			return nil
 		}
 
-		img, err := png.Decode(strings.NewReader(string(base64Decode)))
+		reader := strings.NewReader(string(base64Decode))
+		_, format, err := image.DecodeConfig(reader)
 		if err != nil {
-			printAlert("PNGデータのデコードに失敗しました")
+			printAlert("画像フォーマットの取得に失敗しました")
 			return nil
+		}
+
+		var img image.Image
+		if format == "png" {
+			img, err = png.Decode(strings.NewReader(string(base64Decode)))
+			if err != nil {
+				printAlert("PNGデータのデコードに失敗しました")
+				return nil
+			}
+		} else {
+			img, _, err = image.Decode(strings.NewReader(string(base64Decode)))
+			if err != nil {
+				printAlert("添付された画像データのデコードに失敗しました")
+				return nil
+			}
 		}
 
 		if specifiedfileSize >= 50 {
@@ -83,7 +99,7 @@ func Convert(this js.Value, args []js.Value) interface{} {
 
 		var b bytes.Buffer
 		if err := jpeg.Encode(bufio.NewWriter(&b), imgWithWhite, &jpeg.Options{Quality: quality}); err != nil {
-			printAlert("JPGデータへのエンコードに失敗しました")
+			printAlert("JPG画像へのエンコードに失敗しました")
 			return nil
 		}
 

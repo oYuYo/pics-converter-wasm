@@ -24,7 +24,7 @@
             </a>
         </div>
         <hr />
-        <p><budoux-ja>PNG画像をサイズ縮小し, JPG画像へ変換します. 画像の縦横比は維持します. <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません</budoux-ja></p>
+        <p><budoux-ja>PNG画像をサイズ縮小し, JPG画像へ変換します. JPG画像はサイズ縮小のみです. 画像の縦横比は維持します. <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません.</budoux-ja></p>
         <div class="select-action">
             <div>
                 <label for="vertical-size">
@@ -44,7 +44,7 @@
         </div>
         <div>
             <label for="source-file">変換したいファイルを選択してください</label><br />
-            <input type="file" id="source-file" name="source-file" multiple accept="image/png"/>
+            <input type="file" id="source-file" name="source-file" multiple accept="image/png, image/jpeg"/>
         </div>
         <div style="text-align: center;"><button id="conv">変換</button></div>
         <div id="err-msg"><span id="err-msg-spn"></span></div>
@@ -78,7 +78,7 @@
             }
 
             for(file of files){
-                if(file.type !== "image/png"){
+                if(file.type !== "image/png" && file.type !== "image/jpeg"){
                     document.getElementById("err-msg-spn").innerText = "ファイル形式が不正です";
                     return;
                 }
