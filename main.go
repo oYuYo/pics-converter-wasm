@@ -75,7 +75,7 @@ func Convert(this js.Value, args []js.Value) interface{} {
 			printAlert("画像フォーマットの取得に失敗しました")
 			return nil
 		}
-		printAlert(format)
+
 		var img image.Image
 		switch format {
 		case "png":
